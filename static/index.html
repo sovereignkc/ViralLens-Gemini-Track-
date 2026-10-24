@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ViralLens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] } } } }</script>
+<style>
+  body { background: #07070c; }
+  .bg-orbs::before, .bg-orbs::after { content:''; position:fixed; z-index:-1; border-radius:9999px; filter:blur(120px); opacity:.35; }
+  .bg-orbs::before { width:640px; height:640px; background:#7c3aed; top:-200px; left:-160px; }
+  .bg-orbs::after { width:560px; height:560px; background:#db2777; bottom:-220px; right:-140px; }
+  .glass { background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(16px); }
+  .grad-text { background: linear-gradient(90deg,#c4b5fd,#f0abfc,#fda4af); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .grad-btn { background: linear-gradient(90deg,#7c3aed,#db2777); }
+  .shimmer { background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 75%); background-size: 200% 100%; animation: sh 1.4s infinite; }
+  @keyframes sh { to { background-position: -200% 0 } }
+  .fade-in { animation: fi .5s ease both } @keyframes fi { from { opacity:0; transform: translateY(8px) } }
+</style>
+</head>
+<body class="bg-orbs font-sans text-zinc-200 min-h-screen antialiased">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+
+  <header class="flex items-center justify-between mb-10">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl grad-btn grid place-items-center text-white text-xl font-black shadow-lg shadow-fuchsia-900/40">◎</div>
+      <div class="text-xl font-extrabold tracking-tight text-white">ViralLens</div>
+    </div>
+    <div id="health" class="text-xs px-3 py-1.5 rounded-full glass text-zinc-400">checking Gemini…</div>
+  </header>
+
+  <!-- Hero + the ONE box -->
+  <section class="text-center max-w-3xl mx-auto mb-8">
+    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight mb-4">Stop guessing what to post.<br><span class="grad-text">Copy what works — make it yours.</span></h1>
+    <p class="text-zinc-400 text-lg">Tell us what you make. A Gemini agent <b class="text-zinc-200">goes and finds the outlier videos</b> in your niche, <b class="text-zinc-200">watches them</b>, and keeps rewriting ideas until each one feels human.</p>
+    <p class="mt-4 inline-block text-sm px-4 py-2 rounded-full glass text-zinc-300">ChatGPT waits for you to find the videos. <span class="grad-text font-semibold">ViralLens finds the outliers itself.</span></p>
+  </section>
+
+  <section class="glass rounded-3xl p-5 sm:p-7 max-w-3xl mx-auto mb-6">
+    <textarea id="about" rows="3" class="w-full bg-black/40 border border-white/10 focus:border-fuchsia-500/60 outline-none rounded-2xl px-5 py-4 text-base placeholder-zinc-600 resize-none"
+      placeholder="What do you make, and something real about you?&#10;e.g. Study tips — I'm a broke college student who lifts and failed orgo once."></textarea>
+    <div class="flex flex-wrap gap-1.5 mt-2">
+      <span class="text-[11px] text-zinc-500 mr-1 self-center">Try:</span>
+      <button class="chip text-[11px] px-2.5 py-1 rounded-full glass hover:bg-white/10">Study tips — broke college student who lifts, failed orgo once</button>
+      <button class="chip text-[11px] px-2.5 py-1 rounded-full glass hover:bg-white/10">Budget cooking — single dad, 3 kids, $60/week</button>
+      <button class="chip text-[11px] px-2.5 py-1 rounded-full glass hover:bg-white/10">Indie game dev — nurse who codes after night shifts</button>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3 mt-5 items-stretch sm:items-center">
+      <div id="tiers" class="flex rounded-xl bg-black/40 border border-white/10 p-1 text-xs">
+        <button data-t="starting" class="tier flex-1 px-3 py-2 rounded-lg">📱 Just starting</button>
+        <button data-t="growing" class="tier flex-1 px-3 py-2 rounded-lg">🎙️ Growing</button>
+        <button data-t="established" class="tier flex-1 px-3 py-2 rounded-lg">🎬 Big channel</button>
+      </div>
+      <button id="go" class="grad-btn sm:ml-auto rounded-xl px-8 py-3 font-semibold text-white shadow-lg shadow-fuchsia-900/30 hover:brightness-110 disabled:opacity-50 transition">Find my pattern ✦</button>
+    </div>
+    <details id="linksBox" class="mt-5 rounded-2xl border border-dashed border-white/15 bg-black/20 open:bg-black/30 transition">
+      <summary class="cursor-pointer list-none flex items-center gap-3 px-5 py-4 hover:bg-white/5 rounded-2xl">
+        <span class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 grid place-items-center text-lg">🔗</span>
+        <span><span class="block text-base font-semibold text-zinc-100">Already have videos in mind?</span>
+          <span class="block text-sm text-zinc-500">Paste up to 3 YouTube links and we'll analyze those instead (optional)</span></span>
+        <span class="ml-auto text-zinc-500 text-xl">＋</span></summary>
+      <textarea id="urls" rows="3" class="mx-5 mb-5 w-[calc(100%-2.5rem)] text-base bg-black/40 border border-white/10 focus:border-fuchsia-500/60 outline-none rounded-xl px-4 py-3 text-sm placeholder-zinc-600" placeholder="Up to 3 YouTube links, any format, one per line"></textarea>
+    </details>
+    <div id="err" class="hidden mt-3 text-sm text-rose-300"></div>
+  </section>
+
+  <div id="steps" class="max-w-3xl mx-auto mb-10 space-y-2"></div>
+  <div id="out" class="space-y-12"></div>
+
+  <!-- Why -->
+  <section id="why" class="mt-16 grid md:grid-cols-2 gap-5">
+    <div class="glass rounded-3xl p-6">
+      <div class="text-xs uppercase tracking-[.2em] text-fuchsia-300 mb-2">Why ViralLens</div>
+      <h3 class="text-xl font-bold text-white mb-3">Every AI tool spits out the same generic ideas.</h3>
+      <ul class="text-sm text-zinc-400 space-y-2">
+        <li>✦ <b class="text-zinc-200">Grounded in what actually worked</b>, not vibes. Every claim links to a timestamp you can click.</li>
+        <li>✦ <b class="text-zinc-200">Built around your real life</b>, so no one else gets your ideas.</li>
+        <li>✦ <b class="text-zinc-200">Sized for your gear.</b> Phone-only ideas if you're starting out.</li>
+        <li>✦ <b class="text-zinc-200">Calls out its own AI-speak</b> with a 1–10 "feels human" score.</li>
+      </ul>
+    </div>
+    <div class="glass rounded-3xl p-6">
+      <div class="text-xs uppercase tracking-[.2em] text-sky-300 mb-2">Why Gemini</div>
+      <h3 class="text-xl font-bold text-white mb-3">Most AIs can only read a title. Gemini watches the video.</h3>
+      <ul class="text-sm text-zinc-400 space-y-2">
+        <li>👁 <b class="text-zinc-200">Native video understanding</b>: sees cuts, on-screen text and faces, and hears the music and voice, all from just a YouTube link.</li>
+        <li>⏱ <b class="text-zinc-200">Timestamped reasoning</b>: "the hook lands at 0:02" is only possible if the model watched it.</li>
+        <li>🔎 <b class="text-zinc-200">Google Search grounding</b> finds real viral videos in your niche.</li>
+        <li>🧱 <b class="text-zinc-200">Structured output</b> turns all of that into the cards you see here.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const secs = ts => String(ts).split(':').map(Number).reduce((a, b) => a * 60 + b, 0) || 0;
+const SECTIONS = [['hook','Hook · first 5s','⚡'],['structure_pacing','Structure & pacing','▤'],['format','Format','◧'],
+                  ['emotional_trigger','Emotional trigger','♥'],['title_thumbnail','Title & thumbnail','▣'],['why_viral','Why it went viral','↗']];
+let tier = 'starting';
+function paintTiers() { $$('.tier').forEach(b => b.className = 'tier flex-1 px-3 py-2 rounded-lg transition ' + (b.dataset.t === tier ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-300')); }
+$$('.tier').forEach(b => b.onclick = () => { tier = b.dataset.t; paintTiers(); }); paintTiers();
+$$('.chip').forEach(c => c.onclick = () => $('#about').value = c.textContent.replace(' — ', ' — I\'m a ').replace("I'm a broke", "I'm a broke"));
+fetch('/api/health').then(r => r.json()).then(h => {
+  $('#health').innerHTML = h.ok ? `<span class="text-emerald-400">●</span> Gemini ${h.agent ? 'agent' : ''} ready` : `<span class="text-amber-400">●</span> ${esc(h.error)}`;
+});
+
+function badge(sample, cached) {
+  if (sample) return '<span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">SAMPLE — Gemini unavailable</span>';
+  if (cached) return '<span class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10">cached</span>';
+  return '<span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Gemini</span>';
+}
+function videoCard(v, i) {
+  const secsHtml = SECTIONS.map(([k, label, ic]) => {
+    const s = v.analysis[k] || { summary: '', moments: [] };
+    return `<details class="group border-t border-white/5 py-3" ${k === 'hook' ? 'open' : ''}>
+      <summary class="cursor-pointer list-none flex items-center justify-between text-sm font-semibold text-white">
+        <span><span class="text-fuchsia-400 mr-2">${ic}</span>${label}</span><span class="text-zinc-600 group-open:rotate-90 transition">›</span></summary>
+      <p class="text-sm text-zinc-400 mt-2 leading-relaxed">${esc(s.summary)}</p>
+      <div class="mt-2 space-y-1">${(s.moments || []).map(m => `
+        <button class="ts w-full text-left flex gap-2 text-xs hover:bg-white/5 rounded-lg px-2 py-1" data-i="${i}" data-t="${secs(m.timestamp)}">
+          <span class="font-mono text-fuchsia-300 shrink-0">${esc(m.timestamp)}</span><span class="text-zinc-400">${esc(m.note)}</span></button>`).join('')}</div>
+    </details>`;
+  }).join('');
+  return `<article class="glass rounded-2xl p-4 fade-in" style="animation-delay:${i * 80}ms">
+    <div class="aspect-video rounded-xl overflow-hidden bg-black mb-4">
+      ${v.video_id ? `<iframe id="yt${i}" class="w-full h-full" src="https://www.youtube.com/embed/${v.video_id}" allow="autoplay; encrypted-media" allowfullscreen></iframe>` : ''}</div>
+    <div class="flex items-start justify-between gap-2 mb-1"><h3 class="font-semibold text-white leading-snug">${esc(v.title || v.url)}</h3>${badge(v.sample, v.cached)}</div>
+    <div class="text-xs text-zinc-500 mb-3">${esc(v.channel)}</div>
+    ${v.error ? `<div class="text-[11px] text-amber-300/80 mb-2">${esc(v.error)}</div>` : ''}
+    ${secsHtml}</article>`;
+}
+
+function authBlock(a) {
+  if (!a) return '';
+  const c = a.score >= 8 ? 'emerald' : a.score >= 5 ? 'amber' : 'rose';
+  return `<div class="rounded-xl bg-${c}-500/10 border border-${c}-500/25 p-3 mb-3">
+    <div class="flex items-center justify-between"><span class="text-[10px] uppercase tracking-widest text-${c}-300">Feels human?</span>
+      <span class="text-lg font-extrabold text-${c}-300">${a.score}<span class="text-xs text-zinc-500">/10</span></span></div>
+    <p class="text-xs text-zinc-400 mt-1">${esc(a.reason)}</p>
+    ${(a.flags || []).length ? `<div class="flex flex-wrap gap-1 mt-2">${a.flags.map(f => `<span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/25">⚑ ${esc(f)}</span>`).join('')}</div>` : ''}</div>`;
+}
+function ideaCard(d, i, auth) {
+  const text = `${d.title}\n\nHOOK (0–5s): ${d.hook_script}\n\nOUTLINE:\n${d.outline.map((o, k) => `${k + 1}. ${o}`).join('\n')}\n\nBorrows: ${d.borrowed_pattern}`;
+  return `<article class="glass rounded-2xl p-5 flex flex-col fade-in" style="animation-delay:${i * 80}ms">
+    <div class="flex items-center justify-between mb-3"><span class="text-xs font-mono text-fuchsia-300">IDEA 0${i + 1}</span>
+      <button class="copy text-xs px-2.5 py-1 rounded-lg glass hover:bg-white/10" data-text="${esc(text)}">Copy</button></div>
+    <h4 class="text-lg font-bold text-white leading-snug mb-3">${esc(d.title)}</h4>
+    <div class="rounded-xl bg-gradient-to-br from-violet-500/10 to-pink-500/10 border border-fuchsia-500/20 p-3 mb-3">
+      <div class="text-[10px] uppercase tracking-widest text-fuchsia-300 mb-1">Hook · 0–5s</div>
+      <p class="text-sm text-zinc-200 italic">${esc(d.hook_script)}</p></div>
+    ${authBlock((auth || []).find(a => a.idea_index === i + 1))}
+    <ol class="text-sm text-zinc-400 space-y-1 list-decimal list-inside mb-4">${d.outline.map(o => `<li>${esc(o)}</li>`).join('')}</ol>
+    <div class="mt-auto text-xs text-zinc-500"><span class="text-zinc-400">Borrows:</span> ${esc(d.borrowed_pattern)}</div></article>`;
+}
+
+// ---------- progressive rendering
+const steps = {};
+let firstReport = true;
+function agentLine(ev) {
+  const box = $('#agentLog'); if (!box) return;
+  const t = ((Date.now() - window.runStart) / 1000).toFixed(0).padStart(3, ' ') + 's';
+  const NAMES = { search_videos: '🔎 Searching YouTube', get_stats: '📊 Pulling stats', analyze_video: '👁 Watching video',
+                  write_ideas: '✍️ Writing ideas', rewrite_idea: '♻️ Rewriting idea' };
+  let html = '';
+  if (ev.kind === 'start' || ev.kind === 'think') html = `<span class="text-zinc-300">${esc(ev.text)}</span>`;
+  else if (ev.kind === 'call') {
+    const a = ev.args || {}, arg = a.query ? `“${a.query}”` : a.video_ids ? `${a.video_ids.length} videos` : a.index ? `#${a.index}` : a.video_id || '';
+    html = `<span class="text-fuchsia-300 font-semibold">${NAMES[ev.name] || ev.name}</span> <span class="text-zinc-500">${esc(arg)}</span>`;
+  } else if (ev.kind === 'result') html = `<span class="text-emerald-400">↳</span> <span class="text-zinc-400">${esc(ev.text)}</span>`;
+  else if (ev.kind === 'error') html = `<span class="text-amber-300">${esc(ev.text)}</span>`;
+  const d = document.createElement('div'); d.className = 'flex gap-3 fade-in ' + (ev.kind === 'result' ? 'pl-4' : '');
+  d.innerHTML = `<span class="font-mono text-[11px] text-zinc-600 shrink-0 pt-0.5">${t}</span><span>${html}</span>`;
+  box.appendChild(d); box.scrollTop = 1e9;
+}
+function step(ev) {
+  let el = steps[ev.id];
+  if (!el) { el = steps[ev.id] = document.createElement('div'); $('#steps').appendChild(el); }
+  const icon = ev.error ? '<span class="text-amber-400">!</span>' : ev.done ? '<span class="text-emerald-400">✓</span>'
+    : '<span class="inline-block w-3 h-3 rounded-full border-2 border-fuchsia-400 border-t-transparent animate-spin"></span>';
+  el.className = 'glass rounded-xl px-4 py-2.5 text-sm flex items-center gap-3 fade-in ' + (ev.done ? 'text-zinc-400' : 'text-zinc-200');
+  el.innerHTML = `<span class="w-4 grid place-items-center">${icon}</span><span>${esc(ev.text)}</span><span class="ml-auto text-[11px] text-zinc-600 font-mono t"></span>`;
+  el.dataset.start = el.dataset.start || Date.now();
+  if (ev.done || ev.error) el.querySelector('.t').textContent = ((Date.now() - el.dataset.start) / 1000).toFixed(0) + 's';
+}
+let videos = [];
+function renderVideos() {
+  $('#vids').innerHTML = videos.map(videoCard).join('');
+  wire();
+}
+function renderReport(r) {
+  const rep = r.report;
+  $('#rest').innerHTML = `
+    <section class="relative rounded-3xl p-[1px] bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 fade-in">
+      <div class="rounded-3xl bg-[#0c0b14] p-6 sm:p-8">
+        <div class="flex items-center gap-2 mb-3"><span class="text-xs uppercase tracking-[.2em] text-fuchsia-300">The Viral Pattern</span>${badge(r.report_sample)}</div>
+        <p class="text-lg sm:text-xl text-white leading-relaxed font-medium">${esc(rep.viral_pattern)}</p>
+        <div class="flex flex-wrap gap-2 mt-5">${(rep.shared_elements || []).map(s => `<span class="text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10">${esc(s)}</span>`).join('')}</div>
+        ${rep.error ? `<div class="text-[11px] text-amber-300/80 mt-3">${esc(rep.error)}</div>` : ''}
+      </div></section>
+    <section><h2 class="text-2xl font-bold text-white mb-1">Your 5 ideas</h2>
+      <p class="text-sm text-zinc-500 mb-4">Built on the pattern and your story, then scored by a skeptical second Gemini pass.</p>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">${(rep.ideas || []).map((d, i) => ideaCard(d, i, rep.authenticity)).join('')}</div>
+      ${rep.authenticity_error ? `<div class="text-[11px] text-amber-300/80 mt-3">Human check skipped: ${esc(rep.authenticity_error)}</div>` : ''}</section>
+    <section class="fade-in"><h2 class="text-2xl font-bold text-white mb-1">When to post</h2>
+      <p class="text-sm text-zinc-500 mb-4">A 2-week plan sized for your setup.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">${(rep.calendar || []).map(c => `<div class="glass rounded-2xl p-4">
+        <div class="flex justify-between text-xs mb-2"><span class="font-mono text-fuchsia-300">${esc(c.day)}</span><span class="text-zinc-500">${esc(c.platform)}</span></div>
+        <div class="text-sm text-white font-semibold mb-1">Idea 0${c.idea_index}${rep.ideas?.[c.idea_index - 1] ? ' · ' + esc(rep.ideas[c.idea_index - 1].title) : ''}</div>
+        <div class="text-xs text-zinc-400">${esc(c.action)}</div></div>`).join('')}</div></section>
+    ${rep.audience ? `<section class="glass rounded-3xl p-6 fade-in">
+      <div class="flex flex-wrap items-center gap-2 mb-4"><h2 class="text-xl font-bold text-white">Who's watching (inferred)</h2>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">Inferred audience profile · AI-inferred from the videos, not real analytics</span></div>
+      <div class="grid md:grid-cols-3 gap-5 text-sm">
+        <div><div class="text-xs uppercase tracking-widest text-zinc-500 mb-1">Likely age</div><div class="text-2xl font-bold text-white">${esc(rep.audience.age_range)}</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-500 mt-4 mb-1">Hangs out on</div><div class="text-zinc-300">${(rep.audience.where_they_hang_out || []).map(esc).join(' · ')}</div></div>
+        <div><div class="text-xs uppercase tracking-widest text-zinc-500 mb-1">Interests</div><div class="flex flex-wrap gap-1.5">${(rep.audience.interests || []).map(x => `<span class="text-xs px-2.5 py-1 rounded-full bg-white/5 border border-white/10">${esc(x)}</span>`).join('')}</div>
+          <div class="text-xs uppercase tracking-widest text-zinc-500 mt-4 mb-1">Why they watch</div><p class="text-zinc-300">${esc(rep.audience.why_they_watch)}</p></div>
+        <div><div class="text-xs uppercase tracking-widest text-zinc-500 mb-1">Evidence</div><ul class="text-xs text-zinc-400 space-y-1">${(rep.audience.evidence || []).map(x => `<li>• ${esc(x)}</li>`).join('')}</ul></div>
+      </div></section>` : ''}`;
+  wire();
+  if (firstReport) { firstReport = false; $('#rest').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+}
+function wire() {
+  $$('.ts').forEach(b => b.onclick = () => {
+    const f = $('#yt' + b.dataset.i); if (!f) return;
+    f.src = f.src.split('?')[0] + `?start=${b.dataset.t}&autoplay=1`; f.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  $$('.copy').forEach(b => b.onclick = async () => { await navigator.clipboard.writeText(b.dataset.text); b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = 'Copy', 1500); });
+}
+
+$('#go').onclick = async () => {
+  const about = $('#about').value.trim(), urls = $('#urls').value.split(/\s+/).filter(Boolean);
+  $('#err').classList.add('hidden');
+  if (!about) { $('#err').textContent = 'Tell us what you make first. One sentence is enough.'; $('#err').classList.remove('hidden'); $('#about').focus(); return; }
+  $('#go').disabled = true; $('#go').textContent = 'Working…';
+  $('#steps').innerHTML = ''; for (const k in steps) delete steps[k]; videos = []; firstReport = true; window.runStart = Date.now();
+  const agentMode = urls.length === 0;
+  if (agentMode) $('#steps').innerHTML = `<div class="glass rounded-2xl overflow-hidden">
+    <div class="flex items-center gap-2 px-4 py-2.5 border-b border-white/5 text-xs"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span class="uppercase tracking-[.2em] text-zinc-400">Gemini agent · live</span><span class="ml-auto text-zinc-600">function calling: search → stats → watch → write → score → rewrite</span></div>
+    <div id="agentLog" class="p-4 space-y-1.5 text-sm max-h-80 overflow-y-auto"></div></div>`;
+  $('#out').innerHTML = `<section><div class="flex items-baseline justify-between mb-4"><h2 class="text-2xl font-bold text-white">What Gemini saw</h2>
+      <span class="text-xs text-zinc-500">click a timestamp to jump the player</span></div>
+      <div id="vids" class="grid lg:grid-cols-3 gap-5"></div></section><div id="rest" class="space-y-12"></div>`;
+  try {
+    const res = await fetch(agentMode ? '/api/agent' : '/api/run', { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(agentMode ? { about, tier } : { about, urls, tier }) });
+    if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true }); let k;
+      while ((k = buf.indexOf('\n\n')) >= 0) {
+        const line = buf.slice(0, k); buf = buf.slice(k + 2); if (!line.startsWith('data: ')) continue;
+        const ev = JSON.parse(line.slice(6));
+        if (ev.type === 'step') step(ev);
+        else if (ev.type === 'video') { videos = videos.filter(v => v.video_id !== ev.video.video_id).concat([ev.video]); renderVideos(); }
+        else if (ev.type === 'agent') agentLine(ev);
+        else if (ev.type === 'report') renderReport(ev);
+        else if (ev.type === 'need_urls') { $('#out').innerHTML = ''; $('#linksBox').open = true; $('#urls').focus();
+          $('#err').textContent = ev.text; $('#err').classList.remove('hidden'); }
+      }
+    }
+  } catch (e) { $('#err').textContent = 'Error: ' + e.message; $('#err').classList.remove('hidden'); }
+  $('#go').disabled = false; $('#go').textContent = 'Find my pattern ✦';
+};
+</script>
+</body>
+</html>

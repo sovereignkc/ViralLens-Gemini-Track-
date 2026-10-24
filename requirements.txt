@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+google-genai>=2.33
+httpx
+pydantic>=2
